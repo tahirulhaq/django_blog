@@ -1,0 +1,95 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(event){
+                    $(document).on('click', '#like', function(event){
+                        event.preventDefault();
+                        var pk = $(this).attr('value');
+                        $.ajax({
+                            type: 'POST',
+                            url: '{% url "like_post" %}',
+                            data: {
+                                'id': pk,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            datatype: 'json',
+                            success: function(response){
+                                $('#like-section').html(response['form'])
+    
+                            },
+                            error: function(rs, e){
+                                console.log(rs.responseText);
+                            },
+                        });
+                    });
+                });
+    </script>
+<div>
+    <h1>{{post.title}}</h1>   
+    <p>{{post.content | safe }}</p>
+        <div id="like-section">
+            {% include 'blog/like_section.html' %}
+        </div>
+        <div class="comment-wrapper">
+            <h3>Conversation</h3>
+            <hr>
+            {% for comment in post_comments%}
+            <div>
+                <h5>Following are Comments on this post</h5>
+                <small>@{{comment.user}} commented {{comment.created |timesince}} ago --> </small>
+                <span>{{comment.body}}
+                {% if request.user == comment.user%}
+                <a href="{% url 'delete-comment' comment.id post.slug%}">Delete Comment</a></span>
+                {% endif%}
+                <br>
+                <br>
+                <h5>Following are Replies on this post</h5>
+                <!-- Replies will be displayed here -->
+                {% for reply in replies%}
+                    {%if reply.comment.id == comment.id %}
+                    <span>{{reply.description}}</span>
+                    {% if request.user == comment.user%}
+                    <a href="{% url 'delete-reply' reply.id post.slug%}">Delete</a>
+                    {% endif%}
+                    <br>
+                    {%endif%}
+                {%endfor%}
+
+                {% if request.user.is_authenticated %}
+                <!-- Reply Section here -->
+                <div>
+                    <br>
+                    <h5>Reply Here</h5>
+                    <form action="{%url 'reply' comment.id post.slug %}" method="post">
+                        {% csrf_token %}
+                        <input type="text" name='description' placeholder="Enter Reply here"/>
+                        <input type="submit" value="Reply">
+                    </form>
+                </div>
+                {% endif %}
+                <hr>
+            </div>
+            
+           
+            {% endfor%}
+        </div>
+
+{% if request.user.is_authenticated %}
+<h5>Make a Comment here</h5>
+<div class="comment-form">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <input type="text" name="body" placeholder="Write your comment here..."/>
+    </form>
+</div>
+{% endif %}
+</div>
+
+
+{% endblock content%}

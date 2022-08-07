@@ -1,0 +1,48 @@
+{% extends 'main.html' %}
+
+{% block content%}
+<style>
+    .home-container{
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+    }
+    .post-container{
+        margin-right: 20px;
+    }
+</style>
+<div></div>
+<div class="home-container">
+    <div class="post-container">
+        <button>
+            <a href="{% url 'create-post'%}">Create a Post</a>
+        </button>
+        {% for post in posts %}
+        <h2>->{{post.title}}</h2>  
+        <p style="color: silver;">{{post.created_on}}</p>
+        <p>{{post.content | safe |slice:":200" }}...</p>
+        <button>
+            <a href="{% url 'post' post.slug  %}" >View Post Details</a>
+        </button>
+        {% if request.user == post.author %}
+        <span>
+            <button>
+                <a href="{% url 'update-post' post.id %}">Edit</a>
+            </button>
+            <button>
+                <a href="{% url 'delete-post' post.id %}">Delete</a>
+            </button>
+        </span>
+        {% endif %}
+        <br>
+        <br>
+        {% endfor %}        
+    </div>
+    <div>
+        <!-- side news -->
+        <h1>About Us</h1>
+        <p>This awesome blog is made on the top of our Favorite full stack Framework 'Django'<br>
+        Follow us and Know more!</p>
+        <a href="#">Know more!</a>
+    </div>  
+</div>
+{% endblock content%}
